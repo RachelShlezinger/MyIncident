@@ -1,0 +1,7 @@
+<div class="app-container">
+  <div class="app-header">
+    <h1>{{ title }}</h1>
+    <app-create-request (requestCreated)="onRequestCreated()"></app-create-request>
+  </div>
+  <app-request-table #requestTable></app-request-table>
+</div>

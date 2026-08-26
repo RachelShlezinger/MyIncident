@@ -1,0 +1,31 @@
+<div class="filter-panel">
+  <div class="filter-row">
+    <input
+      type="text"
+      placeholder="חיפוש לפי כותרת או ארגון..."
+      [value]="searchTerm"
+      (input)="onSearchInput($any($event.target).value)"
+      class="search-input"
+    />
+
+    <select [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+      <option value="">כל הסטטוסים</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedPriority" (change)="onFilterChange()">
+      <option value="">כל העדיפויות</option>
+      <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+    </select>
+
+    <select [(ngModel)]="selectedHandler" (change)="onFilterChange()">
+      <option value="">כל הגורמים המטפלים</option>
+      <option *ngFor="let h of handlers" [value]="h">{{ h }}</option>
+    </select>
+
+    <input type="date" [(ngModel)]="fromDate" (change)="onFilterChange()" placeholder="מתאריך" />
+    <input type="date" [(ngModel)]="toDate" (change)="onFilterChange()" placeholder="עד תאריך" />
+
+    <button (click)="clearFilters()" class="clear-btn">נקה מסננים</button>
+  </div>
+</div>

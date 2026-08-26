@@ -1,0 +1,21 @@
+# Private documentation - not for public
+ARCHITECTURE.md
+
+# Kiro spec files
+.kiro/
+
+# IDE
+.vscode/
+
+# .NET
+MyIncident.API/bin/
+MyIncident.API/obj/
+
+# Angular (already has its own .gitignore but adding here too)
+my-incident-client/node_modules/
+my-incident-client/dist/
+my-incident-client/.angular/
+
+# Database files
+*.mdf
+*.ldf

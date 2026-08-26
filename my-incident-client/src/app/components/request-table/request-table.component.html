@@ -1,0 +1,74 @@
+<app-summary-dashboard [aggregation]="aggregation"></app-summary-dashboard>
+
+<app-filter-panel (filtersChanged)="onFiltersChanged($event)"></app-filter-panel>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading">
+  <p>טוען נתונים...</p>
+</div>
+
+<!-- Error -->
+<div *ngIf="error" class="error-panel">
+  <p>{{ error }}</p>
+  <button (click)="retry()">נסה שוב</button>
+</div>
+
+<!-- No results -->
+<div *ngIf="!loading && !error && requests.length === 0" class="empty">
+  <p>לא נמצאו תוצאות</p>
+</div>
+
+<!-- Table -->
+<div *ngIf="!loading && !error && requests.length > 0" class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th (click)="onSort('Id')" class="sortable">מספר פניה {{ getSortIcon('Id') }}</th>
+        <th (click)="onSort('Title')" class="sortable">כותרת {{ getSortIcon('Title') }}</th>
+        <th (click)="onSort('OrganizationName')" class="sortable">ארגון {{ getSortIcon('OrganizationName') }}</th>
+        <th (click)="onSort('HandlerName')" class="sortable">גורם מטפל {{ getSortIcon('HandlerName') }}</th>
+        <th (click)="onSort('Status')" class="sortable">סטטוס {{ getSortIcon('Status') }}</th>
+        <th (click)="onSort('Priority')" class="sortable">עדיפות {{ getSortIcon('Priority') }}</th>
+        <th (click)="onSort('CreatedAt')" class="sortable">תאריך יצירה {{ getSortIcon('CreatedAt') }}</th>
+        <th (click)="onSort('UpdatedAt')" class="sortable">עדכון אחרון {{ getSortIcon('UpdatedAt') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let request of requests">
+        <tr (click)="toggleExpand(request.id)" class="clickable-row" [class.expanded]="expandedId === request.id">
+          <td>{{ request.id }}</td>
+          <td>{{ request.title }}</td>
+          <td>{{ request.organizationName }}</td>
+          <td>{{ request.handlerName }}</td>
+          <td (click)="$event.stopPropagation()">
+            <select [ngModel]="request.status" (ngModelChange)="onStatusUpdate(request, $event)">
+              <option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option>
+            </select>
+          </td>
+          <td><span class="badge priority-{{request.priority | lowercase}}">{{ request.priority }}</span></td>
+          <td>{{ request.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ request.updatedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+        </tr>
+        <tr *ngIf="expandedId === request.id" class="detail-row">
+          <td colspan="8">
+            <div class="detail-content">
+              <div class="detail-field">
+                <strong>פותח הפנייה:</strong> {{ request.openedBy }}
+              </div>
+              <div class="detail-field">
+                <strong>תיאור הבעיה:</strong> {{ request.description }}
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button [disabled]="currentPage === 1" (click)="onPageChange(currentPage - 1)">הקודם</button>
+    <span>עמוד {{ currentPage }} מתוך {{ totalPages }} ({{ totalCount }} תוצאות)</span>
+    <button [disabled]="currentPage === totalPages" (click)="onPageChange(currentPage + 1)">הבא</button>
+  </div>
+</div>

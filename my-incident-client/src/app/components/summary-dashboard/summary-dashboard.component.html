@@ -1,0 +1,50 @@
+<div class="dashboard" *ngIf="aggregation">
+  <div class="total-card">
+    <span class="total-number">{{ aggregation.totalCount | number }}</span>
+    <span class="total-label">סה"כ פניות</span>
+  </div>
+
+  <div class="charts-row">
+    <!-- Status Chart -->
+    <div class="chart-card">
+      <h4>לפי סטטוס</h4>
+      <div class="vertical-chart">
+        <div class="v-bar-item" *ngFor="let item of statusItems">
+          <div class="v-bar-track">
+            <div class="v-bar-fill" [style.height.%]="item.percent" [style.background]="item.color"></div>
+          </div>
+          <span class="v-bar-value">{{ item.value | number }}</span>
+          <span class="v-bar-label">{{ item.key }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Priority Chart -->
+    <div class="chart-card">
+      <h4>לפי עדיפות</h4>
+      <div class="vertical-chart">
+        <div class="v-bar-item" *ngFor="let item of priorityItems">
+          <div class="v-bar-track">
+            <div class="v-bar-fill" [style.height.%]="item.percent" [style.background]="item.color"></div>
+          </div>
+          <span class="v-bar-value">{{ item.value | number }}</span>
+          <span class="v-bar-label">{{ item.key }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject Chart -->
+    <div class="chart-card">
+      <h4>לפי נושא</h4>
+      <div class="vertical-chart">
+        <div class="v-bar-item" *ngFor="let item of subjectItems">
+          <div class="v-bar-track">
+            <div class="v-bar-fill" [style.height.%]="item.percent" [style.background]="item.color"></div>
+          </div>
+          <span class="v-bar-value">{{ item.value | number }}</span>
+          <span class="v-bar-label">{{ item.key }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

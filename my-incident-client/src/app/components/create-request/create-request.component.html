@@ -1,0 +1,86 @@
+<div class="create-request-container">
+  <button (click)="toggleForm()" class="toggle-btn">
+    {{ showForm ? 'ביטול' : '+ יצירת פנייה חדשה' }}
+  </button>
+
+  <div *ngIf="showForm" class="form-panel">
+    <h3>יצירת פנייה חדשה</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>נושא *</label>
+        <select [(ngModel)]="selectedSubject" class="form-input">
+          <option value="">בחר נושא</option>
+          <option *ngFor="let s of subjects" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <div class="form-group flex-grow">
+        <label>תיאור כותרת *</label>
+        <input
+          type="text"
+          [(ngModel)]="titleDescription"
+          maxlength="150"
+          placeholder="לדוגמה: אחזקת רכב"
+          class="form-input"
+        />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ארגון *</label>
+        <select [(ngModel)]="selectedOrg" (change)="onOrgChange()" class="form-input">
+          <option value="">בחר ארגון</option>
+          <option *ngFor="let o of orgHandlers" [value]="o.org">{{ o.org }}</option>
+        </select>
+      </div>
+
+      <div class="form-group" *ngIf="handlerName">
+        <label>גורם מטפל</label>
+        <input type="text" [value]="handlerName" disabled class="form-input handler-field" />
+      </div>
+
+      <div class="form-group">
+        <label>עדיפות *</label>
+        <select [(ngModel)]="selectedPriority" class="form-input">
+          <option value="">בחר עדיפות</option>
+          <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>פותח הפנייה *</label>
+      <input
+        type="text"
+        [(ngModel)]="openedBy"
+        maxlength="100"
+        placeholder="שם מלא"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>תיאור הבעיה</label>
+      <textarea
+        [(ngModel)]="description"
+        rows="3"
+        maxlength="500"
+        placeholder="תאר את הבעיה בפירוט..."
+        class="form-input"
+      ></textarea>
+    </div>
+
+    <div *ngIf="error" class="error-msg">{{ error }}</div>
+    <div *ngIf="success" class="success-msg">הפנייה נוצרה בהצלחה!</div>
+
+    <button
+      (click)="onSubmit()"
+      [disabled]="submitting"
+      class="submit-btn"
+    >
+      {{ submitting ? 'שולח...' : 'שלח פנייה' }}
+    </button>
+  </div>
+</div>
