@@ -45,7 +45,7 @@ public class RequestService : IRequestService
 
         // Set the original RowVersion for optimistic concurrency check
         _context.Entry(request).Property(r => r.RowVersion).OriginalValue =
-            Convert.FromBase64String(dto.RowVersion);
+            uint.Parse(dto.RowVersion);
 
         request.Status = newStatus;
         request.UpdatedAt = DateTime.UtcNow;
@@ -108,7 +108,7 @@ public class RequestService : IRequestService
             Priority = request.Priority.ToString(),
             CreatedAt = request.CreatedAt,
             UpdatedAt = request.UpdatedAt,
-            RowVersion = Convert.ToBase64String(request.RowVersion)
+            RowVersion = request.RowVersion.ToString()
         };
     }
 }

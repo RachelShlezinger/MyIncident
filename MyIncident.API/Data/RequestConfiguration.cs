@@ -33,7 +33,10 @@ public class RequestConfiguration : IEntityTypeConfiguration<Request>
             .IsRequired();
 
         builder.Property(r => r.RowVersion)
-            .IsRowVersion();
+            .HasColumnName("xmin")
+            .HasColumnType("xid")
+            .ValueGeneratedOnAddOrUpdate()
+            .IsConcurrencyToken();
 
         // Indexes for performance
         builder.HasIndex(r => r.Status);

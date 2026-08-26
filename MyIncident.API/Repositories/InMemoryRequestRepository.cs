@@ -75,7 +75,7 @@ public class InMemoryRequestRepository : IRequestRepository
     public Task<Request> CreateAsync(Request entity)
     {
         entity.Id = _nextId++;
-        entity.RowVersion = BitConverter.GetBytes(entity.Id);
+        entity.RowVersion = (uint)entity.Id;
         _requests.Add(entity);
         return Task.FromResult(entity);
     }
@@ -156,7 +156,7 @@ public class InMemoryRequestRepository : IRequestRepository
                 Priority = priorities[random.Next(priorities.Length)],
                 CreatedAt = createdAt,
                 UpdatedAt = createdAt.AddHours(random.Next(0, 72)),
-                RowVersion = BitConverter.GetBytes(i)
+                RowVersion = (uint)i
             };
         }).ToList();
     }
