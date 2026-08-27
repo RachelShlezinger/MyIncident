@@ -3,6 +3,7 @@ WORKDIR /app
 EXPOSE 10000
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG CACHE_BUST=1
 WORKDIR /src
 COPY ["MyIncident.API.csproj", "."]
 RUN dotnet restore

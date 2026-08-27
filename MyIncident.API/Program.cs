@@ -38,28 +38,41 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply migrations and seed data on startup
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    
-    // EnsureCreated only creates tables if DB doesn't exist.
-    // If schema is empty (after reset), we need to force recreation.
-    var creator = context.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
-    if (!creator.HasTables())
-    {
-        creator.CreateTables();
-    }
-    
-    await DatabaseSeeder.SeedAsync(context);
-}
-
-// Configure the HTTP request pipeline
+// Configure the HTTP request pipeline FIRST (so port is open immediately)
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors("AllowAngular");
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapControllers();
+
+// Run DB initialization in background after app starts listening
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    Task.Run(async () =>
+    {
+        using var scope = app.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            var creator = context.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
+            if (!creator.HasTables())
+            {
+                logger.LogInformation("Creating database tables...");
+                creator.CreateTables();
+            }
+
+            logger.LogInformation("Starting database seed...");
+            await DatabaseSeeder.SeedAsync(context);
+            logger.LogInformation("Database seed completed.");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error during database initialization");
+        }
+    });
+});
 
 app.Run();
