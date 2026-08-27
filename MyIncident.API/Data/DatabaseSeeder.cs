@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using MyIncident.API.Models;
 
 namespace MyIncident.API.Data;
@@ -6,28 +7,37 @@ public static class DatabaseSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        if (context.Requests.Any())
+        // Seed Organizations first
+        if (!await context.Organizations.AnyAsync())
+        {
+            var organizations = new List<Organization>
+            {
+                new() { Name = "פרקליטות", HandlerName = "יוסי כהן" },
+                new() { Name = "הון אנושי", HandlerName = "מירב לוי" },
+                new() { Name = "תקשוב", HandlerName = "אבי ישראלי" },
+                new() { Name = "כספים", HandlerName = "דנה שמעוני" },
+                new() { Name = "לשכה משפטית", HandlerName = "רונית אברהם" },
+                new() { Name = "ביטחון פנים", HandlerName = "עמית גולן" },
+                new() { Name = "מינהל", HandlerName = "שרה דוד" },
+                new() { Name = "דוברות", HandlerName = "נועם פרץ" },
+                new() { Name = "רכש ולוגיסטיקה", HandlerName = "יעל מזרחי" },
+                new() { Name = "הדרכה והשתלמויות", HandlerName = "אורן חיים" }
+            };
+
+            context.Organizations.AddRange(organizations);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed Requests
+        if (await context.Requests.AnyAsync())
             return;
+
+        var orgs = await context.Organizations.ToListAsync();
+        var orgLookup = orgs.ToDictionary(o => o.Name, o => o);
 
         var random = new Random(42);
         var statuses = Enum.GetValues<RequestStatus>();
         var priorities = Enum.GetValues<RequestPriority>();
-
-        var orgHandlerMap = new Dictionary<string, string>
-        {
-            { "פרקליטות", "יוסי כהן" },
-            { "הון אנושי", "מירב לוי" },
-            { "תקשוב", "אבי ישראלי" },
-            { "כספים", "דנה שמעוני" },
-            { "לשכה משפטית", "רונית אברהם" },
-            { "ביטחון פנים", "עמית גולן" },
-            { "מינהל", "שרה דוד" },
-            { "דוברות", "נועם פרץ" },
-            { "רכש ולוגיסטיקה", "יעל מזרחי" },
-            { "הדרכה והשתלמויות", "אורן חיים" }
-        };
-
-        var orgs = orgHandlerMap.Keys.ToArray();
 
         var titles = new Dictionary<string, string[]>
         {
@@ -63,12 +73,14 @@ public static class DatabaseSeeder
             "הנושא עלה בישיבת הנהלה ונקבע שיש לטפל בו תוך שבוע."
         };
 
+        var orgNames = orgs.Select(o => o.Name).ToArray();
         var requests = new List<Request>(10000);
 
         for (int i = 0; i < 10000; i++)
         {
             var createdAt = DateTime.UtcNow.AddDays(-random.Next(1, 365)).AddHours(-random.Next(0, 24));
-            var org = orgs[random.Next(orgs.Length)];
+            var orgName = orgNames[random.Next(orgNames.Length)];
+            var org = orgLookup[orgName];
             var subject = subjects[random.Next(subjects.Length)];
             var titleDesc = titles[subject][random.Next(titles[subject].Length)];
             requests.Add(new Request
@@ -76,8 +88,9 @@ public static class DatabaseSeeder
                 Title = $"{subject} - {titleDesc}",
                 Description = detailedDescriptions[random.Next(detailedDescriptions.Length)],
                 OpenedBy = openers[random.Next(openers.Length)],
-                OrganizationName = org,
-                HandlerName = orgHandlerMap[org],
+                OrganizationId = org.Id,
+                OrganizationName = org.Name,
+                HandlerName = org.HandlerName,
                 Status = statuses[random.Next(statuses.Length)],
                 Priority = priorities[random.Next(priorities.Length)],
                 CreatedAt = createdAt,

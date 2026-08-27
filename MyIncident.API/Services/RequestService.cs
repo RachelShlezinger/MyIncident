@@ -54,27 +54,14 @@ public class RequestService : IRequestService
         return MapToDto(updated);
     }
 
-    private static readonly Dictionary<string, string> OrgHandlerMap = new()
-    {
-        { "פרקליטות", "יוסי כהן" },
-        { "הון אנושי", "מירב לוי" },
-        { "תקשוב", "אבי ישראלי" },
-        { "כספים", "דנה שמעוני" },
-        { "לשכה משפטית", "רונית אברהם" },
-        { "ביטחון פנים", "עמית גולן" },
-        { "מינהל", "שרה דוד" },
-        { "דוברות", "נועם פרץ" },
-        { "רכש ולוגיסטיקה", "יעל מזרחי" },
-        { "הדרכה והשתלמויות", "אורן חיים" }
-    };
-
     public async Task<RequestDto> CreateRequestAsync(CreateRequestDto dto)
     {
         if (!Enum.TryParse<RequestPriority>(dto.Priority, true, out var priority))
             throw new ArgumentException($"Invalid priority value '{dto.Priority}'. Valid values: Low, Medium, High.");
 
-        if (!OrgHandlerMap.ContainsKey(dto.OrganizationName))
-            throw new ArgumentException($"Invalid organization '{dto.OrganizationName}'.");
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Name == dto.OrganizationName)
+            ?? throw new ArgumentException($"Invalid organization '{dto.OrganizationName}'.");
 
         var now = DateTime.UtcNow;
         var request = new Request
@@ -82,8 +69,9 @@ public class RequestService : IRequestService
             Title = dto.Title,
             Description = dto.Description,
             OpenedBy = dto.OpenedBy,
-            OrganizationName = dto.OrganizationName,
-            HandlerName = OrgHandlerMap[dto.OrganizationName],
+            OrganizationId = organization.Id,
+            OrganizationName = organization.Name,
+            HandlerName = organization.HandlerName,
             Status = RequestStatus.New,
             Priority = priority,
             CreatedAt = now,

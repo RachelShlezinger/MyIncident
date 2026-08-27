@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { QueryParams } from '../../models/query-params.model';
 import { RequestStatus, RequestPriority } from '../../models/request.model';
+import { RequestService, OrganizationDto } from '../../services/request.service';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
@@ -8,23 +9,12 @@ import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
   templateUrl: './filter-panel.component.html',
   styleUrls: ['./filter-panel.component.css']
 })
-export class FilterPanelComponent {
+export class FilterPanelComponent implements OnInit {
   @Output() filtersChanged = new EventEmitter<QueryParams>();
 
   statuses = Object.values(RequestStatus);
   priorities = Object.values(RequestPriority);
-  handlers = [
-    'יוסי כהן',
-    'מירב לוי',
-    'אבי ישראלי',
-    'דנה שמעוני',
-    'רונית אברהם',
-    'עמית גולן',
-    'שרה דוד',
-    'נועם פרץ',
-    'יעל מזרחי',
-    'אורן חיים'
-  ];
+  handlers: string[] = [];
 
   selectedStatus = '';
   selectedPriority = '';
@@ -35,11 +25,17 @@ export class FilterPanelComponent {
 
   private searchSubject = new Subject<string>();
 
-  constructor() {
+  constructor(private requestService: RequestService) {
     this.searchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(() => this.emitFilters());
+  }
+
+  ngOnInit(): void {
+    this.requestService.getOrganizations().subscribe({
+      next: (orgs) => this.handlers = orgs.map(o => o.handlerName)
+    });
   }
 
   onSearchInput(value: string): void {

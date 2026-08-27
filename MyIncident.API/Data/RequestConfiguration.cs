@@ -14,6 +14,9 @@ public class RequestConfiguration : IEntityTypeConfiguration<Request>
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(r => r.OrganizationId)
+            .IsRequired();
+
         builder.Property(r => r.OrganizationName)
             .IsRequired()
             .HasMaxLength(150);

@@ -10,9 +10,11 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Request> Requests => Set<Request>();
+    public DbSet<Organization> Organizations => Set<Organization>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new RequestConfiguration());
+        modelBuilder.ApplyConfiguration(new OrganizationConfiguration());
     }
 }

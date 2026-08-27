@@ -1,18 +1,13 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { RequestService } from '../../services/request.service';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { RequestService, OrganizationDto } from '../../services/request.service';
 import { RequestPriority } from '../../models/request.model';
-
-interface OrgHandler {
-  org: string;
-  handler: string;
-}
 
 @Component({
   selector: 'app-create-request',
   templateUrl: './create-request.component.html',
   styleUrls: ['./create-request.component.css']
 })
-export class CreateRequestComponent {
+export class CreateRequestComponent implements OnInit {
   @Output() requestCreated = new EventEmitter<void>();
 
   showForm = false;
@@ -32,20 +27,20 @@ export class CreateRequestComponent {
 
   subjects = ['רכב', 'מחשוב', 'תשתיות', 'הרשאות', 'אבטחה', 'כספים', 'הדרכה'];
 
-  orgHandlers: OrgHandler[] = [
-    { org: 'פרקליטות', handler: 'יוסי כהן' },
-    { org: 'הון אנושי', handler: 'מירב לוי' },
-    { org: 'תקשוב', handler: 'אבי ישראלי' },
-    { org: 'כספים', handler: 'דנה שמעוני' },
-    { org: 'לשכה משפטית', handler: 'רונית אברהם' },
-    { org: 'ביטחון פנים', handler: 'עמית גולן' },
-    { org: 'מינהל', handler: 'שרה דוד' },
-    { org: 'דוברות', handler: 'נועם פרץ' },
-    { org: 'רכש ולוגיסטיקה', handler: 'יעל מזרחי' },
-    { org: 'הדרכה והשתלמויות', handler: 'אורן חיים' }
-  ];
+  organizations: OrganizationDto[] = [];
 
   constructor(private requestService: RequestService) {}
+
+  ngOnInit(): void {
+    this.loadOrganizations();
+  }
+
+  private loadOrganizations(): void {
+    this.requestService.getOrganizations().subscribe({
+      next: (orgs) => this.organizations = orgs,
+      error: () => this.error = 'שגיאה בטעינת רשימת הארגונים'
+    });
+  }
 
   toggleForm(): void {
     this.showForm = !this.showForm;
@@ -53,8 +48,8 @@ export class CreateRequestComponent {
   }
 
   onOrgChange(): void {
-    const found = this.orgHandlers.find(o => o.org === this.selectedOrg);
-    this.handlerName = found ? found.handler : '';
+    const found = this.organizations.find(o => o.name === this.selectedOrg);
+    this.handlerName = found ? found.handlerName : '';
   }
 
   onSubmit(): void {

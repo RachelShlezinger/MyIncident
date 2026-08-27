@@ -32,7 +32,7 @@
         <label>ארגון *</label>
         <select [(ngModel)]="selectedOrg" (change)="onOrgChange()" class="form-input">
           <option value="">בחר ארגון</option>
-          <option *ngFor="let o of orgHandlers" [value]="o.org">{{ o.org }}</option>
+          <option *ngFor="let o of organizations" [value]="o.name">{{ o.name }}</option>
         </select>
       </div>
 

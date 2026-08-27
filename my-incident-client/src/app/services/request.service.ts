@@ -5,13 +5,24 @@ import { PagedResponse, AggregationDto, Request, UpdateStatusRequest, CreateRequ
 import { QueryParams } from '../models/query-params.model';
 import { environment } from '../../environments/environment';
 
+export interface OrganizationDto {
+  id: number;
+  name: string;
+  handlerName: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class RequestService {
   private readonly apiUrl = `${environment.apiUrl}/requests`;
+  private readonly orgsUrl = `${environment.apiUrl}/organizations`;
 
   constructor(private http: HttpClient) {}
+
+  getOrganizations(): Observable<OrganizationDto[]> {
+    return this.http.get<OrganizationDto[]>(this.orgsUrl);
+  }
 
   getRequests(params: QueryParams): Observable<PagedResponse<Request>> {
     const httpParams = this.buildParams(params);
