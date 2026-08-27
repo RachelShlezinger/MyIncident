@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using MyIncident.API.Data;
 using MyIncident.API.Middleware;
 using MyIncident.API.Repositories;
@@ -57,32 +56,25 @@ app.Lifetime.ApplicationStarted.Register(() =>
 
         try
         {
-            var creator = context.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
-            if (!creator.HasTables())
-            {
-                logger.LogInformation("Creating database tables...");
-                creator.CreateTables();
-                logger.LogInformation("Database tables created.");
-            }
+            // Ensure tables exist
+            await context.Database.EnsureCreatedAsync();
 
-            // Only seed if tables are empty AND not in Production
-            // In Production (Render), seed is done externally to avoid OOM on free tier
+            // In production, only seed organizations (lightweight)
             var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
-            if (!env.IsProduction())
+            if (env.IsProduction())
             {
-                logger.LogInformation("Starting database seed...");
-                await DatabaseSeeder.SeedAsync(context);
-                logger.LogInformation("Database seed completed.");
-            }
-            else
-            {
-                // In production, only seed organizations (lightweight)
                 if (!await context.Organizations.AnyAsync())
                 {
                     logger.LogInformation("Seeding organizations...");
                     await DatabaseSeeder.SeedOrganizationsAsync(context);
                     logger.LogInformation("Organizations seeded.");
                 }
+            }
+            else
+            {
+                logger.LogInformation("Starting full database seed...");
+                await DatabaseSeeder.SeedAsync(context);
+                logger.LogInformation("Database seed completed.");
             }
         }
         catch (Exception ex)
