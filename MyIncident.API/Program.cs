@@ -24,12 +24,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:4200",
-                "https://my-incident.vercel.app",
-                "https://myincident.vercel.app"
-              )
-              .SetIsOriginAllowedToAllowWildcardSubdomains()
+        policy.SetIsOriginAllowed(origin =>
+              {
+                  var uri = new Uri(origin);
+                  return uri.Host == "localhost" ||
+                         uri.Host.EndsWith(".vercel.app") ||
+                         uri.Host == "myincident.vercel.app";
+              })
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
