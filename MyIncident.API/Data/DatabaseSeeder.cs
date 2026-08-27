@@ -98,7 +98,14 @@ public static class DatabaseSeeder
             });
         }
 
-        context.Requests.AddRange(requests);
-        await context.SaveChangesAsync();
+        // Insert in batches to avoid memory issues on free-tier hosting (256MB)
+        const int batchSize = 100;
+        for (int batch = 0; batch < requests.Count; batch += batchSize)
+        {
+            var batchItems = requests.Skip(batch).Take(batchSize).ToList();
+            context.Requests.AddRange(batchItems);
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+        }
     }
 }
