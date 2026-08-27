@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using MyIncident.API.Data;
 using MyIncident.API.Middleware;
 using MyIncident.API.Repositories;
@@ -41,7 +42,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    context.Database.EnsureCreated();
+    
+    // EnsureCreated only creates tables if DB doesn't exist.
+    // If schema is empty (after reset), we need to force recreation.
+    var creator = context.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
+    if (!creator.HasTables())
+    {
+        creator.CreateTables();
+    }
+    
     await DatabaseSeeder.SeedAsync(context);
 }
 
