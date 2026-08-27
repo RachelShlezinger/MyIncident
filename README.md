@@ -1,10 +1,116 @@
 # מערכת ניהול פניות (MyIncident)
 
-מערכת Full Stack לניהול פניות/בקשות המתקבלות מארגונים ממשלתיים. המערכת כוללת שרת REST API מבוסס .NET 8 וממשק לקוח Angular 15.
+מערכת Full Stack לניהול פניות/בקשות המתקבלות מארגונים ממשלתיים.  
+המערכת כוללת שרת REST API מבוסס .NET 8 וממשק לקוח Angular 15.
 
 ---
 
-## תיאור כללי
+## 🔗 קישורים
+
+| רכיב | קישור |
+|-------|--------|
+| **אתר חי (API)** | https://myincident-api.onrender.com |
+| **Swagger (תיעוד API)** | https://myincident-api.onrender.com/swagger |
+| **קליינט (Angular)** | https://myincident.vercel.app |
+| **קוד מקור — GitHub** | https://github.com/RachelShlezinger/MyIncident |
+| **בסיס נתונים** | PostgreSQL (Render) — נוצר אוטומטית בהרצה ראשונה |
+
+> **הערה**: ב-Free tier של Render, הבקשה הראשונה אחרי חוסר פעילות לוקחת ~50 שניות (ה-instance "מתעורר"). לאחר מכן הכל מהיר.
+
+---
+
+## 📁 מיקום הקוד
+
+| רכיב | נתיב ב-Repository |
+|-------|-------------------|
+| שרת C# (.NET 8 API) | `/MyIncident.API/` |
+| קליינט Angular | `/my-incident-client/` |
+| ניתוח ארכיטקטורה | `/ARCHITECTURE.md` |
+| Dockerfile (deploy) | `/MyIncident.API/Dockerfile` |
+
+---
+
+## 🏗️ סביבות
+
+### ייצור (Production) — Render + Vercel
+- **API**: Docker container על Render (auto-deploy מ-branch `main`)
+- **DB**: PostgreSQL על Render (Free tier, 256MB RAM, 1GB storage)
+- **Client**: Vercel (static hosting)
+- ה-DB נוצר אוטומטית (`EnsureCreated`) בעלייה הראשונה ומתמלא ב-10,000 רשומות
+
+### פיתוח (Development) — Local
+- **API**: `dotnet run` על `localhost:5114`
+- **DB**: מתחבר ל-PostgreSQL ב-Render (External URL)
+- **Client**: `npm start` על `localhost:4200`
+
+---
+
+## 🚀 הוראות הרצה (Development)
+
+### דרישות מקדימות
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Node.js 16+](https://nodejs.org/) (כולל npm)
+- גישת אינטרנט (ה-DB רץ ב-Render)
+
+### שרת (API)
+
+```bash
+cd MyIncident.API
+dotnet run
+```
+
+השרת יעלה על `http://localhost:5114`  
+Swagger: `http://localhost:5114/swagger`
+
+> בהרצה ראשונה, בסיס הנתונים נוצר אוטומטית ומתמלא ב-10,000 רשומות לדוגמה.
+
+### צד לקוח (Angular)
+
+```bash
+cd my-incident-client
+npm install
+npm start
+```
+
+האפליקציה תעלה על `http://localhost:4200`
+
+---
+
+## 🗄️ בסיס נתונים
+
+### סוג: PostgreSQL (Render)
+
+בסיס הנתונים **נוצר אוטומטית** בהרצה ראשונה — אין צורך בסקריפט יצירה ידני.
+
+### יצירת מבנה הטבלאות
+הקוד משתמש ב-`EnsureCreated()` — מה שיוצר את כל הטבלאות אוטומטית לפי ההגדרות ב-Entity Framework Core.
+
+### נתונים ראשוניים (Seed)
+הקובץ `MyIncident.API/Data/DatabaseSeeder.cs` מכיל את כל הלוגיקה ליצירת נתונים ראשוניים:
+- **10 ארגונים** עם גורמים מטפלים (טבלת `Organizations`)
+- **10,000 פניות** עם נתוני דמו מגוונים (טבלת `Requests`)
+
+ה-Seed רץ אוטומטית אם הטבלאות ריקות.
+
+### Connection String
+מוגדר ב-`appsettings.json`:
+```
+Host=dpg-da7k1ihsrm7s73esgoa0-a.frankfurt-postgres.render.com
+Database=myincidentdb
+Username=myincident_user
+SSL Mode=Require
+```
+
+### טבלאות
+
+| טבלה | תיאור |
+|-------|--------|
+| `Organizations` | ארגונים וגורמים מטפלים (Id, Name, HandlerName) |
+| `Requests` | פניות — מקושרות לארגון ב-FK (OrganizationId) |
+
+---
+
+## 📋 תיאור כללי
 
 המערכת מאפשרת:
 - **צפייה בפניות** — טבלה עם דפדוף (Pagination) התומכת ב-10,000+ רשומות
@@ -19,79 +125,52 @@
 
 ---
 
-## טכנולוגיות
+## 🛠️ טכנולוגיות
 
 | רכיב | טכנולוגיה |
 |-------|-----------|
 | שרת (API) | .NET 8, ASP.NET Core Web API |
-| בסיס נתונים | SQL Server LocalDB, Entity Framework Core 8 |
+| בסיס נתונים | PostgreSQL, Entity Framework Core 8 |
 | צד לקוח | Angular 15, TypeScript |
 | תיעוד API | Swagger / OpenAPI |
+| Deploy — API | Render (Docker) |
+| Deploy — Client | Vercel |
 
 ---
 
-## מבנה הפרויקט
+## 📐 מבנה הפרויקט
 
 ```
 MyIncident/
-├── MyIncident.API/          # שרת REST API
+├── MyIncident.API/          # שרת REST API (.NET 8)
 │   ├── Controllers/         # נקודות קצה (Endpoints)
+│   │   ├── RequestsController.cs
+│   │   └── OrganizationsController.cs
 │   ├── Services/            # שכבת לוגיקה עסקית
 │   ├── Repositories/        # שכבת גישה לנתונים
 │   ├── Models/              # מודלי Domain
+│   │   ├── Request.cs
+│   │   └── Organization.cs
 │   ├── DTOs/                # אובייקטי העברת נתונים
 │   ├── Data/                # DbContext, Seeder, Configurations
-│   └── Middleware/          # טיפול גלובלי בשגיאות
+│   ├── Middleware/          # טיפול גלובלי בשגיאות
+│   └── Dockerfile           # Build & Deploy configuration
 ├── my-incident-client/      # אפליקציית Angular
 │   └── src/app/
-│       ├── components/      # קומפוננטות UI
+│       ├── components/
 │       │   ├── request-table/       # טבלה ראשית + pagination
 │       │   ├── filter-panel/        # פאנל סינון וחיפוש
 │       │   ├── summary-dashboard/   # דאשבורד גרפי
 │       │   └── create-request/      # טופס יצירת פנייה
 │       ├── services/        # שירותי HTTP
 │       └── models/          # ממשקי TypeScript
-├── README.md
+├── README.md                # הוראות הפעלה (קובץ זה)
 └── ARCHITECTURE.md          # ניתוח ארכיטקטורה מעמיק
 ```
 
 ---
 
-## דרישות מקדימות
-
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js 16+](https://nodejs.org/) (כולל npm)
-- SQL Server LocalDB (מגיע עם Visual Studio או ניתן להתקנה בנפרד)
-
----
-
-## הוראות הרצה
-
-### שרת (API)
-
-```bash
-cd MyIncident.API
-dotnet run
-```
-
-השרת יעלה על `http://localhost:5114`.  
-ממשק Swagger זמין בכתובת: `http://localhost:5114/swagger`
-
-> בהרצה ראשונה, בסיס הנתונים נוצר אוטומטית ומתמלא ב-10,000 רשומות לדוגמה.
-
-### צד לקוח (Angular)
-
-```bash
-cd my-incident-client
-npm install
-npm start
-```
-
-האפליקציה תעלה על `http://localhost:4200`.
-
----
-
-## נקודות קצה עיקריות (API)
+## 🔌 נקודות קצה (API Endpoints)
 
 | Method | Endpoint | תיאור |
 |--------|----------|--------|
@@ -99,106 +178,33 @@ npm start
 | GET | `/api/requests/aggregations` | נתונים מצטברים (ספירות לפי סטטוס, עדיפות, ונושא) |
 | POST | `/api/requests` | יצירת פנייה חדשה |
 | PATCH | `/api/requests/{id}/status` | עדכון סטטוס פנייה |
-
-### פרמטרי שאילתה (GET /api/requests)
-
-| פרמטר | תיאור | ברירת מחדל |
-|--------|--------|------------|
-| page | מספר עמוד | 1 |
-| pageSize | גודל עמוד | 20 |
-| status | סינון לפי סטטוס (New, InProgress, Waiting, Completed, Rejected) | — |
-| priority | סינון לפי עדיפות (Low, Medium, High) | — |
-| organizationName | סינון לפי שם ארגון (חיפוש חלקי) | — |
-| handlerName | סינון לפי גורם מטפל | — |
-| fromDate | תאריך התחלה | — |
-| toDate | תאריך סיום | — |
-| search | חיפוש חופשי בכותרת ושם ארגון | — |
-| sortBy | שדה למיון | CreatedAt |
-| sortDirection | כיוון מיון (asc/desc) | desc |
+| GET | `/api/organizations` | רשימת ארגונים וגורמים מטפלים |
 
 ---
 
-## מודל נתונים — פנייה (Request)
-
-| שדה | סוג | תיאור |
-|------|------|--------|
-| Id | int | מזהה ייחודי |
-| Title | string (max 200) | כותרת בפורמט "נושא - תיאור" |
-| Description | string | תיאור מפורט של הבעיה |
-| OpenedBy | string | שם פותח הפנייה |
-| OrganizationName | string (max 150) | שם הארגון |
-| HandlerName | string | גורם מטפל (נקבע אוטומטית לפי ארגון) |
-| Status | enum | New, InProgress, Waiting, Completed, Rejected |
-| Priority | enum | Low, Medium, High |
-| CreatedAt | datetime | תאריך יצירה |
-| UpdatedAt | datetime | תאריך עדכון אחרון |
-| RowVersion | byte[] | Concurrency token |
-
----
-
-## אתגר נבחר: Concurrency (בקרת מקביליות)
+## 🔒 אתגר נבחר: Concurrency (בקרת מקביליות)
 
 ### הבעיה
-כאשר שני משתמשים פותחים את אותה פנייה ומנסים לעדכן את הסטטוס שלה במקביל — ללא מנגנון הגנה, העדכון השני ידרוס את הראשון ללא התראה.
+כאשר שני משתמשים מנסים לעדכן את אותה פנייה במקביל — ללא מנגנון הגנה, העדכון השני ידרוס את הראשון.
 
-### הפתרון שנבחר: Optimistic Concurrency עם RowVersion
+### הפתרון: Optimistic Concurrency עם RowVersion (xmin)
 
-- **RowVersion** — כל רשומה מכילה שדה `RowVersion` (timestamp) שמתעדכן אוטומטית בכל שינוי.
-- **בקליינט** — כשהמשתמש טוען רשומה, הוא מקבל את ה-RowVersion הנוכחי.
-- **בעדכון** — הקליינט שולח את ה-RowVersion שקיבל. השרת משווה אותו לערך הנוכחי ב-DB.
-- **התנגשות** — אם הערכים לא תואמים (כלומר, מישהו אחר עדכן בינתיים), מוחזרת שגיאת **409 Conflict**.
-- **בממשק** — מוצגת הודעה "הרשומה שונתה על ידי משתמש אחר" והנתונים נטענים מחדש.
-
-### חלופות שנשקלו
-
-| חלופה | יתרונות | חסרונות | סיבת פסילה |
-|--------|----------|---------|-------------|
-| Pessimistic Locking (נעילה) | מונע התנגשויות לחלוטין | ביצועים ירודים, סיכון ל-deadlocks, UX גרוע | לא מתאים לאפליקציית Web |
-| Last Write Wins | פשוט למימוש | איבוד נתונים שקט | לא עומד בדרישה |
-| Merge Conflicts (כמו Git) | שומר את שני השינויים | מורכבות גבוהה, UX מסובך | Overkill לעדכון סטטוס |
-
-### מימוש טכני
-
-**שרת (Middleware):**
-```csharp
-catch (DbUpdateConcurrencyException)
-{
-    // מחזיר 409 Conflict
-    await WriteErrorResponse(context, 409, "Conflict",
-        "The record was modified by another user. Please reload and try again.");
-}
-```
-
-**קליינט:**
-```typescript
-if (err.status === 409) {
-    alert('הרשומה שונתה על ידי משתמש אחר. הנתונים יטענו מחדש.');
-    this.loadData();
-}
-```
+- כל רשומה מכילה `RowVersion` (מנוהל אוטומטית ע"י PostgreSQL)
+- בעדכון, השרת משווה את ה-RowVersion שנשלח לערך הנוכחי ב-DB
+- אם לא תואמים → **409 Conflict** + הודעה למשתמש + טעינה מחדש
 
 ---
 
-## שיפורי ביצועים
+## ⚡ שיפורי ביצועים
 
-- **אינדקסים** על שדות הסינון הנפוצים: Status, Priority, CreatedAt, OrganizationName
-- **דפדוף בצד השרת** — רק העמוד הנדרש נטען מה-DB (Skip/Take)
+- **אינדקסים** על Status, Priority, CreatedAt, OrganizationName
+- **דפדוף בצד השרת** (Skip/Take) — רק 20 רשומות בכל פעם
 - **AsNoTracking** — שאילתות קריאה ללא Change Tracking
-- **Debounce בחיפוש** — השהיה של 300ms בצד הקליינט למניעת בקשות מיותרות
+- **Debounce בחיפוש** — 300ms השהיה בצד הקליינט
 
 ---
 
-## הרצת בדיקות
-
-### בדיקות שרת
-```bash
-cd MyIncident.API
-dotnet test
-```
-
----
-
-## ארגונים וגורמים מטפלים
+## 🏢 ארגונים וגורמים מטפלים
 
 | ארגון | גורם מטפל |
 |-------|-----------|
@@ -215,7 +221,7 @@ dotnet test
 
 ---
 
-## נושאי פניות
+## 📝 נושאי פניות
 
 רכב, מחשוב, תשתיות, הרשאות, אבטחה, כספים, הדרכה
 
