@@ -62,11 +62,28 @@ app.Lifetime.ApplicationStarted.Register(() =>
             {
                 logger.LogInformation("Creating database tables...");
                 creator.CreateTables();
+                logger.LogInformation("Database tables created.");
             }
 
-            logger.LogInformation("Starting database seed...");
-            await DatabaseSeeder.SeedAsync(context);
-            logger.LogInformation("Database seed completed.");
+            // Only seed if tables are empty AND not in Production
+            // In Production (Render), seed is done externally to avoid OOM on free tier
+            var env = scope.ServiceProvider.GetRequiredService<IWebHostEnvironment>();
+            if (!env.IsProduction())
+            {
+                logger.LogInformation("Starting database seed...");
+                await DatabaseSeeder.SeedAsync(context);
+                logger.LogInformation("Database seed completed.");
+            }
+            else
+            {
+                // In production, only seed organizations (lightweight)
+                if (!await context.Organizations.AnyAsync())
+                {
+                    logger.LogInformation("Seeding organizations...");
+                    await DatabaseSeeder.SeedOrganizationsAsync(context);
+                    logger.LogInformation("Organizations seeded.");
+                }
+            }
         }
         catch (Exception ex)
         {

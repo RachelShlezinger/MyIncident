@@ -5,28 +5,33 @@ namespace MyIncident.API.Data;
 
 public static class DatabaseSeeder
 {
+    public static async Task SeedOrganizationsAsync(AppDbContext context)
+    {
+        if (await context.Organizations.AnyAsync())
+            return;
+
+        var organizations = new List<Organization>
+        {
+            new() { Name = "פרקליטות", HandlerName = "יוסי כהן" },
+            new() { Name = "הון אנושי", HandlerName = "מירב לוי" },
+            new() { Name = "תקשוב", HandlerName = "אבי ישראלי" },
+            new() { Name = "כספים", HandlerName = "דנה שמעוני" },
+            new() { Name = "לשכה משפטית", HandlerName = "רונית אברהם" },
+            new() { Name = "ביטחון פנים", HandlerName = "עמית גולן" },
+            new() { Name = "מינהל", HandlerName = "שרה דוד" },
+            new() { Name = "דוברות", HandlerName = "נועם פרץ" },
+            new() { Name = "רכש ולוגיסטיקה", HandlerName = "יעל מזרחי" },
+            new() { Name = "הדרכה והשתלמויות", HandlerName = "אורן חיים" }
+        };
+
+        context.Organizations.AddRange(organizations);
+        await context.SaveChangesAsync();
+    }
+
     public static async Task SeedAsync(AppDbContext context)
     {
         // Seed Organizations first
-        if (!await context.Organizations.AnyAsync())
-        {
-            var organizations = new List<Organization>
-            {
-                new() { Name = "פרקליטות", HandlerName = "יוסי כהן" },
-                new() { Name = "הון אנושי", HandlerName = "מירב לוי" },
-                new() { Name = "תקשוב", HandlerName = "אבי ישראלי" },
-                new() { Name = "כספים", HandlerName = "דנה שמעוני" },
-                new() { Name = "לשכה משפטית", HandlerName = "רונית אברהם" },
-                new() { Name = "ביטחון פנים", HandlerName = "עמית גולן" },
-                new() { Name = "מינהל", HandlerName = "שרה דוד" },
-                new() { Name = "דוברות", HandlerName = "נועם פרץ" },
-                new() { Name = "רכש ולוגיסטיקה", HandlerName = "יעל מזרחי" },
-                new() { Name = "הדרכה והשתלמויות", HandlerName = "אורן חיים" }
-            };
-
-            context.Organizations.AddRange(organizations);
-            await context.SaveChangesAsync();
-        }
+        await SeedOrganizationsAsync(context);
 
         // Seed Requests
         if (await context.Requests.AnyAsync())
